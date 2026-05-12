@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation("androidx.navigation:navigation-compose:2.9.8")
+    implementation("io.coil-kt:coil-compose:2.6.0")
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
