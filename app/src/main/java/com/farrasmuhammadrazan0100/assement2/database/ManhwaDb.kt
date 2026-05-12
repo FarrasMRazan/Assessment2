@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.farrasmuhammadrazan0100.assement2.model.CharacterEntity
 import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
 
-@Database(entities = [ManhwaEntity::class], version = 1, exportSchema = false)
+@Database(entities = [ManhwaEntity::class, CharacterEntity::class], version = 1, exportSchema = false)
 abstract class ManhwaDb : RoomDatabase() {
     abstract val manhwaDao: ManhwaDao
     abstract val characterDao : CharacterDao

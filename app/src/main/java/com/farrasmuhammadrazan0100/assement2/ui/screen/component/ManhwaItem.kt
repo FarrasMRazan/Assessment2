@@ -6,9 +6,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
+import com.farrasmuhammadrazan0100.assement2.R
 
 @Composable
 fun ManhwaItem(
@@ -29,6 +31,8 @@ fun ManhwaItem(
                 AsyncImage(
                     model = manhwa.imageUri,
                     contentDescription = null,
+                    error = painterResource(id = R.drawable.ic_broken_image),
+                    placeholder = painterResource(id = R.drawable.ic_loading),
                     modifier = Modifier.height(180.dp).fillMaxWidth(),
                     contentScale = ContentScale.Crop
                 )
