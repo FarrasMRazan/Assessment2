@@ -10,9 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,26 +20,32 @@ import androidx.navigation.NavHostController
 import com.farrasmuhammadrazan0100.assement2.R
 import com.farrasmuhammadrazan0100.assement2.navigation.Screen
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ManhwaItem
+import com.farrasmuhammadrazan0100.assement2.ui.screen.component.CharacterItem
+import com.farrasmuhammadrazan0100.assement2.ui.screen.component.AddCharacterDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     navController: NavHostController,
     viewModel: MainViewModel,
-    isList: Boolean,         // State dari DataStore (Layout)
-    isDarkMode: Boolean,     // State dari DataStore (Tema)
-    onLayoutChange: (Boolean) -> Unit, // Callback untuk ubah layout
-    onThemeChange: (Boolean) -> Unit   // Callback untuk ubah tema
+    isList: Boolean,
+    isDarkMode: Boolean,
+    onLayoutChange: (Boolean) -> Unit,
+    onThemeChange: (Boolean) -> Unit
 ) {
-    // Mengambil data Manhwa dari Room melalui ViewModel
     val data by viewModel.data.collectAsState()
+    val characters by viewModel.characters.collectAsState()
+
+    var selectedTab by remember { mutableIntStateOf(0) }
+    var showAddCharacterDialog by remember { mutableStateOf(false) }
+
+    val tabs = listOf("Manhwa", "Character")
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = "ManhwaVault") },
                 actions = {
-                    // Fitur Toggle List/Grid (Poin 5 Rubrik)
                     IconButton(onClick = { onLayoutChange(!isList) }) {
                         Icon(
                             painter = painterResource(
@@ -50,7 +54,6 @@ fun MainScreen(
                             contentDescription = "Ganti Layout"
                         )
                     }
-                    // Fitur Toggle Dark/Light Mode (Poin 5 Rubrik)
                     IconButton(onClick = { onThemeChange(!isDarkMode) }) {
                         Icon(
                             painter = painterResource(
@@ -62,82 +65,149 @@ fun MainScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    scrolledContainerColor = Color.Unspecified,
-                    navigationIconContentColor = Color.Unspecified,
                     titleContentColor = MaterialTheme.colorScheme.primary,
-                    actionIconContentColor = Color.Unspecified
                 )
             )
         },
         floatingActionButton = {
-            // Navigasi ke Form Tambah (Poin 6 Rubrik)
             FloatingActionButton(onClick = {
-                navController.navigate(Screen.FormBaru.route)
+                if (selectedTab == 0) {
+                    navController.navigate(Screen.FormBaru.route)
+                } else {
+                    showAddCharacterDialog = true
+                }
             }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah Manhwa")
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah")
             }
         }
     ) { padding ->
-        if (data.isEmpty()) {
-            // Tampilan jika database kosong (Empty State - Poin 1 Rubrik)
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_empty_state),
-                    contentDescription = null,
-                    modifier = Modifier.size(120.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // Tab Row
+            TabRow(selectedTabIndex = selectedTab) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(title) }
+                    )
+                }
+            }
+
+            // Tab Content
+            when (selectedTab) {
+                0 -> ManhwaTabContent(
+                    data = data,
+                    isList = isList,
+                    onItemClick = { manhwaId ->
+                        navController.navigate(Screen.FormUbah.withId(manhwaId))
+                    }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Belum ada koleksi Manhwa.",
-                    style = MaterialTheme.typography.bodyLarge
+                1 -> CharacterTabContent(
+                    characters = characters,
+                    manhwaList = data,
+                    onDeleteCharacter = { character ->
+                        viewModel.deleteCharacter(character)
+                    }
                 )
             }
-        } else {
-            // Menampilkan data (Urut otomatis berdasarkan judul dari DAO)
-            if (isList) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        top = padding.calculateTopPadding(),
-                        bottom = 80.dp // Agar item terakhir tidak tertutup FAB (Poin 1)
+        }
+    }
+
+    // Dialog Tambah Character
+    if (showAddCharacterDialog) {
+        AddCharacterDialog(
+            manhwaList = data,
+            onDismiss = { showAddCharacterDialog = false },
+            onConfirm = { manhwaId, charName, charRole ->
+                viewModel.insertCharacter(manhwaId, charName, charRole)
+                showAddCharacterDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun ManhwaTabContent(
+    data: List<com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity>,
+    isList: Boolean,
+    onItemClick: (Int) -> Unit
+) {
+    if (data.isEmpty()) {
+        EmptyState(message = "Belum ada koleksi Manhwa.")
+    } else {
+        if (isList) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(data) { manhwa ->
+                    ManhwaItem(
+                        manhwa = manhwa,
+                        isGrid = false,
+                        onClick = { onItemClick(manhwa.id) }
                     )
-                ) {
-                    items(data) { manhwa ->
-                        ManhwaItem(
-                            manhwa = manhwa,
-                            isGrid = false,
-                            onClick = {
-                                navController.navigate(Screen.FormUbah.withId(manhwa.id))
-                            }
-                        )
-                    }
                 }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        top = padding.calculateTopPadding(),
-                        bottom = 80.dp // Poin 1 Rubrik
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(data) { manhwa ->
+                    ManhwaItem(
+                        manhwa = manhwa,
+                        isGrid = true,
+                        onClick = { onItemClick(manhwa.id) }
                     )
-                ) {
-                    items(data) { manhwa ->
-                        ManhwaItem(
-                            manhwa = manhwa,
-                            isGrid = true,
-                            onClick = {
-                                navController.navigate(Screen.FormUbah.withId(manhwa.id))
-                            }
-                        )
-                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CharacterTabContent(
+    characters: List<com.farrasmuhammadrazan0100.assement2.model.CharacterEntity>,
+    manhwaList: List<com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity>,
+    onDeleteCharacter: (com.farrasmuhammadrazan0100.assement2.model.CharacterEntity) -> Unit
+) {
+    if (characters.isEmpty()) {
+        EmptyState(message = "Belum ada karakter yang ditambahkan.")
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
+            items(characters) { character ->
+                val manhwaTitle = manhwaList.find { it.id == character.manhwaId }?.title ?: "Unknown"
+                CharacterItem(
+                    character = character,
+                    manhwaTitle = manhwaTitle,
+                    onDelete = { onDeleteCharacter(character) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyState(message: String) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_empty_state),
+            contentDescription = null,
+            modifier = Modifier.size(120.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = message, style = MaterialTheme.typography.bodyLarge)
     }
 }

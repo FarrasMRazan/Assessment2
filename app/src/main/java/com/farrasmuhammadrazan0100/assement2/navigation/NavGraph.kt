@@ -25,17 +25,15 @@ fun SetupNavGraph(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Inisialisasi Database, DAO, dan DataStore
     val db = ManhwaDb.getInstance(context)
     val dao = db.manhwaDao
+    val characterDao = db.characterDao          // tambahan
     val dataStore = SettingsDataStore(context)
 
-    // Inisialisasi ViewModel menggunakan Factory
     val viewModel: MainViewModel = viewModel(
-        factory = ViewModelFactory(dao, dataStore)
+        factory = ViewModelFactory(dao, characterDao, dataStore)   // update factory
     )
 
-    // Mengambil state dari DataStore untuk dikirim ke MainScreen
     val isList by dataStore.layoutFlow.collectAsState(initial = true)
     val isDarkMode by dataStore.darkModeFlow.collectAsState(initial = false)
 
@@ -44,7 +42,6 @@ fun SetupNavGraph(
         startDestination = Screen.Home.route
     ) {
         composable(route = Screen.Home.route) {
-            // MENGISI SEMUA PARAMETER YANG DIBUTUHKAN MAINSCREEN
             MainScreen(
                 navController = navController,
                 viewModel = viewModel,
@@ -62,7 +59,7 @@ fun SetupNavGraph(
         composable(
             route = Screen.FormUbah.route,
             arguments = listOf(
-                navArgument(KEY_ID_MANHWA) { type = NavType.IntType } // Gunakan IntType agar konsisten
+                navArgument(KEY_ID_MANHWA) { type = NavType.IntType }
             )
         ) { navBackStackEntry ->
             val id = navBackStackEntry.arguments?.getInt(KEY_ID_MANHWA)
