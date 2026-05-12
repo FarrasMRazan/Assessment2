@@ -1,20 +1,20 @@
 package com.farrasmuhammadrazan0100.assement2.database
 import androidx.room.*
-import com.farrasmuhammadrazan0100.assement2.model.Character
+import com.farrasmuhammadrazan0100.assement2.model.CharacterEntity
 import kotlinx.coroutines.flow.Flow
 
 interface CharacterDao {
     interface CharacterDao {
         @Insert
-        suspend fun insertCharacter(character: Character)
+        suspend fun insertCharacter(characterEntity: CharacterEntity)
 
         @Update
-        suspend fun updateCharacter(character: Character)
+        suspend fun updateCharacter(characterEntity: CharacterEntity)
 
         @Query("SELECT * FROM character_table WHERE manhwaId = :manhwaId")
-        fun getCharactersByManhwa(manhwaId: Int): Flow<List<Character>>
+        fun getCharactersByManhwa(manhwaId: Int): Flow<List<CharacterEntity>>
 
         @Delete
-        suspend fun deleteCharacter(character: Character)
+        suspend fun deleteCharacter(characterEntity: CharacterEntity)
     }
 }

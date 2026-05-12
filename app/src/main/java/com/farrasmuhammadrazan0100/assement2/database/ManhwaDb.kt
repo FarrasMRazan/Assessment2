@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.farrasmuhammadrazan0100.assement2.model.Manhwa
-import com.farrasmuhammadrazan0100.assement2.model.Character
+import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
+import com.farrasmuhammadrazan0100.assement2.model.CharacterEntity
 
 @Database(
-    entities = [Manhwa::class, Character::class],
+    entities = [ManhwaEntity::class, CharacterEntity::class],
     version = 1,
     exportSchema = false
 )

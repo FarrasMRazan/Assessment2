@@ -1,18 +1,18 @@
 package com.farrasmuhammadrazan0100.assement2.database
 import androidx.room.*
-import com.farrasmuhammadrazan0100.assement2.model.Manhwa
+import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
 import kotlinx.coroutines.flow.Flow
 
 interface ManhwaDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertManhwa(manhwa: Manhwa)
+    suspend fun insertManhwa(manhwaEntity: ManhwaEntity)
 
     @Update
-    suspend fun updateManhwa(manhwa: Manhwa)
+    suspend fun updateManhwa(manhwaEntity: ManhwaEntity)
 
     @Delete
-    suspend fun deleteManhwa(manhwa: Manhwa)
+    suspend fun deleteManhwa(manhwaEntity: ManhwaEntity)
 
     @Query("SELECT * FROM manhwa_table ORDER BY title ASC")
-    fun getAllManhwa(): Flow<List<Manhwa>>
+    fun getAllManhwa(): Flow<List<ManhwaEntity>>
 }

@@ -8,14 +8,14 @@ import androidx.room.PrimaryKey
     tableName = "character_table",
     foreignKeys = [
         ForeignKey(
-            entity = Manhwa::class,
+            entity = ManhwaEntity::class,
             parentColumns = ["id"],
             childColumns = ["manhwaId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class Character(
+data class CharacterEntity(
     @PrimaryKey(autoGenerate = true)
     val charId: Int = 0,
     val manhwaId: Int,
