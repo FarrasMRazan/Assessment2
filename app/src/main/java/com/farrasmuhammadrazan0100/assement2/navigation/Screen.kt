@@ -1,8 +1,9 @@
 package com.farrasmuhammadrazan0100.assement2.navigation
-
+const val KEY_ID_MANHWA = "manhwaID"
 sealed class Screen(val route: String) {
-    object Home : Screen("home")
-    object Detail : Screen("detail/{manhwaId}") {
-        fun createRoute(manhwaId: Int) = "detail/$manhwaId"
+    object Home : Screen("mainScreen")
+    object FormBaru : Screen("detailScreen")
+    object FormUbah : Screen("detailScreen/{$KEY_ID_MANHWA}") {
+        fun withId(id: Int) = "detailScreen/$id"
     }
 }

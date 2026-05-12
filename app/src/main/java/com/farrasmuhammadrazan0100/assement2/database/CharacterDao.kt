@@ -3,8 +3,8 @@ import androidx.room.*
 import com.farrasmuhammadrazan0100.assement2.model.CharacterEntity
 import kotlinx.coroutines.flow.Flow
 
+@Dao
 interface CharacterDao {
-    interface CharacterDao {
         @Insert
         suspend fun insertCharacter(characterEntity: CharacterEntity)
 

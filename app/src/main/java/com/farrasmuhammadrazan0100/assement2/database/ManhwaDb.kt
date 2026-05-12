@@ -5,30 +5,28 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
-import com.farrasmuhammadrazan0100.assement2.model.CharacterEntity
 
-@Database(
-    entities = [ManhwaEntity::class, CharacterEntity::class],
-    version = 1,
-    exportSchema = false
-)
+@Database(entities = [ManhwaEntity::class], version = 1, exportSchema = false)
 abstract class ManhwaDb : RoomDatabase() {
     abstract val manhwaDao: ManhwaDao
-    abstract val characterDao: CharacterDao
+    abstract val characterDao : CharacterDao
 
     companion object {
         @Volatile
         private var INSTANCE: ManhwaDb? = null
 
-        fun getDatabase(context: Context): ManhwaDb {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    ManhwaDb::class.java,
-                    "manhwa_database"
-                ).build()
-                INSTANCE = instance
-                instance
+        fun getInstance(context: Context): ManhwaDb {
+            synchronized(this) {
+                var instance = INSTANCE
+                if (instance == null) {
+                    instance = Room.databaseBuilder(
+                        context.applicationContext,
+                        ManhwaDb::class.java,
+                        "manhwa_db"
+                    ).build()
+                    INSTANCE = instance
+                }
+                return instance
             }
         }
     }

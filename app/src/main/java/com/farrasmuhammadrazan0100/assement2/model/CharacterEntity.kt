@@ -2,6 +2,7 @@ package com.farrasmuhammadrazan0100.assement2.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -13,7 +14,8 @@ import androidx.room.PrimaryKey
             childColumns = ["manhwaId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["manhwaId"])]
 )
 data class CharacterEntity(
     @PrimaryKey(autoGenerate = true)

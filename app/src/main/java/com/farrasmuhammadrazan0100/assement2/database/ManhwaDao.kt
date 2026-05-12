@@ -3,6 +3,7 @@ import androidx.room.*
 import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
 import kotlinx.coroutines.flow.Flow
 
+@Dao
 interface ManhwaDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertManhwa(manhwaEntity: ManhwaEntity)

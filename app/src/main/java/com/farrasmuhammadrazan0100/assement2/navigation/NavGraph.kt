@@ -1,42 +1,37 @@
 package com.farrasmuhammadrazan0100.assement2.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.farrasmuhammadrazan0100.assement2.ui.screen.MainScreen
 import com.farrasmuhammadrazan0100.assement2.ui.screen.DetailScreen
+import com.farrasmuhammadrazan0100.assement2.ui.screen.MainScreen
 
 @Composable
-fun NavGraph(
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
-    startDestination: String = Screen.Home.route
+fun SetupNavGraph(
+    navController: NavHostController = rememberNavController()
 ) {
     NavHost(
         navController = navController,
-        startDestination = startDestination,
-        modifier = modifier
+        startDestination = Screen.Home.route
     ) {
         composable(route = Screen.Home.route) {
-            MainScreen(
-                onNavigateToDetail = { id ->
-                    navController.navigate(Screen.Detail.createRoute(id))
-                }
-            )
+            MainScreen(navController)
         }
+
+        composable(route = Screen.FormBaru.route) {
+            DetailScreen(navController)
+        }
+
         composable(
-            route = Screen.Detail.route,
-            arguments = listOf(navArgument("manhwaId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("manhwaId") ?: -1
-            DetailScreen(
-                manhwaId = id,
-                onBack = { navController.navigateUp() }
+            route = Screen.FormUbah.route,
+            arguments = listOf(
+                navArgument(KEY_ID_MANHWA) { type = NavType.IntType }
             )
+        ) { navBackStackEntry ->
+            val id = navBackStackEntry.arguments?.getInt(KEY_ID_MANHWA)
+            DetailScreen(navController, id)
         }
     }
 }

@@ -1,9 +1,9 @@
 package com.farrasmuhammadrazan0100.assement2.ui.screen
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
 
 @Composable
-fun DetailScreen(manhwaId: Int, onBack: () -> Unit) {
-    Text(text = "Detail Manhwa ID: $manhwaId")
+fun DetailScreen(navController: NavController, id: Int? = null) {
+
 }
