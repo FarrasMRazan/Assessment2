@@ -27,11 +27,11 @@ fun SetupNavGraph(
 
     val db = ManhwaDb.getInstance(context)
     val dao = db.manhwaDao
-    val characterDao = db.characterDao          // tambahan
+    val characterDao = db.characterDao
     val dataStore = SettingsDataStore(context)
 
     val viewModel: MainViewModel = viewModel(
-        factory = ViewModelFactory(dao, characterDao, dataStore)   // update factory
+        factory = ViewModelFactory(dao, characterDao, dataStore)
     )
 
     val isList by dataStore.layoutFlow.collectAsState(initial = true)

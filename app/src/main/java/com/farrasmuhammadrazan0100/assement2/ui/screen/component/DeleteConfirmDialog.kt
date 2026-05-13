@@ -4,6 +4,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.farrasmuhammadrazan0100.assement2.R
 
 @Composable
 fun DeleteConfirmDialog(
@@ -13,19 +15,19 @@ fun DeleteConfirmDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = {
-            Text(text = "Hapus Manhwa?")
+            Text(text = stringResource(R.string.dialog_delete_title))
         },
         text = {
-            Text(text = "Data yang sudah dihapus tidak dapat dikembalikan. Apakah Anda yakin?")
+            Text(text = stringResource(R.string.dialog_delete_message))
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(text = "Hapus")
+                Text(text = stringResource(R.string.btn_delete))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text(text = "Batal")
+                Text(text = stringResource(R.string.btn_cancel))
             }
         }
     )

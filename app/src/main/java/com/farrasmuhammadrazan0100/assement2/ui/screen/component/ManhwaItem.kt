@@ -49,7 +49,6 @@ fun ManhwaItem(
                 )
             }
         } else {
-            // Tampilan List: gambar + judul + author + rating
             Row(
                 modifier = Modifier.padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically

@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.farrasmuhammadrazan0100.assement2.R
 import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,18 +23,20 @@ fun AddCharacterDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Tambah Karakter") },
+        title = { Text(stringResource(R.string.dialog_add_character_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                // Dropdown pilih Manhwa
-                Text("Pilih Manhwa", style = MaterialTheme.typography.labelMedium)
+                Text(
+                    stringResource(R.string.label_pick_manhwa),
+                    style = MaterialTheme.typography.labelMedium
+                )
                 ExposedDropdownMenuBox(
                     expanded = dropdownExpanded,
                     onExpandedChange = { dropdownExpanded = !dropdownExpanded }
                 ) {
                     OutlinedTextField(
-                        value = selectedManhwa?.title ?: "Pilih Manhwa",
+                        value = selectedManhwa?.title ?: stringResource(R.string.label_pick_manhwa),
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = {
@@ -40,7 +44,6 @@ fun AddCharacterDialog(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor()
                     )
                     ExposedDropdownMenu(
                         expanded = dropdownExpanded,
@@ -58,20 +61,18 @@ fun AddCharacterDialog(
                     }
                 }
 
-                // Input nama karakter
                 OutlinedTextField(
                     value = charName,
                     onValueChange = { charName = it },
-                    label = { Text("Nama Karakter") },
+                    label = { Text(stringResource(R.string.label_char_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
 
-                // Input role karakter
                 OutlinedTextField(
                     value = charRole,
                     onValueChange = { charRole = it },
-                    label = { Text("Role (Contoh: Protagonist)") },
+                    label = { Text(stringResource(R.string.label_char_role)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -85,12 +86,12 @@ fun AddCharacterDialog(
                     }
                 }
             ) {
-                Text("Tambah")
+                Text(stringResource(R.string.btn_add))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Batal")
+                Text(stringResource(R.string.btn_cancel))
             }
         }
     )
