@@ -36,4 +36,13 @@ object ManhwaApiConfig {
             .build()
             .create(ManhwaApiService::class.java)
     }
+
+    val jikanService: JikanApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.jikan.moe/v4/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(JikanApiService::class.java)
+    }
 }

@@ -44,4 +44,7 @@
     <string name="dialog_recommend_desc">Pilih kategori atau tekan Random untuk dapat rekomendasi dari Shiro API!</string>
     <string name="label_pick_category">Pilih Kategori:</string>
     <string name="btn_random">🎲 Random</string>
+    <string name="label_search_manhwa">Cari judul manhwa...</string>
+    <string name="btn_search">🔍 Cari di MangaDex</string>
+    <string name="dialog1_recommend_desc">Cari manhwa by judul atau tekan Random untuk kejutan dari MangaDex!</string>
 </resources>

@@ -2,7 +2,6 @@ package com.farrasmuhammadrazan0100.assement2.ui.screen
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -52,11 +51,15 @@ class MainViewModel(
     )
 
     val isList: StateFlow<Boolean> = dataStore.layoutFlow.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000L), initialValue = true
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = true
     )
 
     val isDarkMode: StateFlow<Boolean> = dataStore.darkModeFlow.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000L), initialValue = false
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = false
     )
 
     private val _errorMessage = MutableStateFlow<String?>(null)
@@ -155,7 +158,6 @@ class MainViewModel(
     private fun saveBitmapToFile(context: Context, bitmap: Bitmap): String {
         val dir = File(context.filesDir, "manhwa_images")
         if (!dir.exists()) dir.mkdirs()
-
         val file = File(dir, "manhwa_${System.currentTimeMillis()}.jpg")
         FileOutputStream(file).use { out ->
             bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
@@ -201,14 +203,21 @@ class MainViewModel(
             return
         }
 
+        val coverUrl = try {
+            val result = ManhwaApiConfig.jikanService.searchManhwa(query = name)
+            result.data.firstOrNull()?.images?.jpg?.largeImageUrl ?: ""
+        } catch (e: Exception) {
+            ""
+        }
+
         dao.insertManhwa(
             ManhwaEntity(
                 id = 0,
                 title = title,
                 author = "Shiro API · $categoryName",
                 rating = 0f,
-                imageUri = "",
-                userId = ""
+                imageUri = coverUrl,
+                userId = userId
             )
         )
         _errorMessage.value = "✓ \"$title\" ($categoryName) ditambahkan!"
