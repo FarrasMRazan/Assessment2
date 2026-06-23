@@ -72,7 +72,6 @@ fun MainScreen(
 
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddCharacterDialog by remember { mutableStateOf(false) }
-    // State baru: tampilkan ManhwaDialog setelah bitmap dari kamera tersedia
     var showManhwaDialog by remember { mutableStateOf(false) }
 
     val tabs = listOf(
@@ -80,9 +79,9 @@ fun MainScreen(
         stringResource(R.string.tab_character)
     )
 
-    //LaunchedEffect(userId) {
-      //  viewModel.setUserId(userId)
-    //}
+    LaunchedEffect(userId) {
+        viewModel.setUserId(userId)
+    }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
 
@@ -168,8 +167,7 @@ fun MainScreen(
         }
     }
 
-    // Dialog tambah manhwa (setelah foto dari kamera)
-    // Saat simpan diklik → Log.d dulu (Task 3.2), nanti diganti kirim ke server (Task 3.3)
+
     if (showManhwaDialog) {
         ManhwaDialog(
             bitmap = bitmap,
@@ -177,7 +175,7 @@ fun MainScreen(
             onConfirmation = { judul, author, rating ->
                 Log.d("TAMBAH", "$judul $author ditambahkan.")
                 showManhwaDialog = false
-                // TODO Task 3.3: ganti Log.d di atas dengan viewModel.saveManhwa(...)
+
             }
         )
     }
