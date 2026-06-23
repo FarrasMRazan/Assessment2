@@ -32,7 +32,6 @@ fun ShiroRecommendDialog(
                     text = stringResource(R.string.label_pick_category),
                     style = MaterialTheme.typography.labelMedium
                 )
-                // Chip kategori scrollable horizontal
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(categories) { category ->
                         FilterChip(

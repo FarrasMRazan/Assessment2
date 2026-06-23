@@ -66,13 +66,18 @@ fun MainScreen(
     isDarkMode: Boolean,
     onLayoutChange: (Boolean) -> Unit,
     onThemeChange: (Boolean) -> Unit,
-    userId: String
+    userId: String,
+    onSignIn: () -> Unit = {},
+    onSignOut: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val data by viewModel.data.collectAsState()
     val characters by viewModel.characters.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    val isLoggedIn = userId.isNotEmpty()
+    val msgLoginRequired = stringResource(R.string.toast_login_required)
 
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddCharacterDialog by remember { mutableStateOf(false) }
@@ -83,7 +88,6 @@ fun MainScreen(
         stringResource(R.string.tab_manhwa),
         stringResource(R.string.tab_character)
     )
-
 
     LaunchedEffect(userId) {
         viewModel.setUserId(userId)
@@ -117,7 +121,8 @@ fun MainScreen(
                     IconButton(onClick = { onLayoutChange(!isList) }) {
                         Icon(
                             painter = painterResource(
-                                id = if (isList) R.drawable.ic_grid_view else R.drawable.ic_list_view
+                                id = if (isList) R.drawable.ic_grid_view
+                                else R.drawable.ic_list_view
                             ),
                             contentDescription = stringResource(R.string.change_layout)
                         )
@@ -125,10 +130,26 @@ fun MainScreen(
                     IconButton(onClick = { onThemeChange(!isDarkMode) }) {
                         Icon(
                             painter = painterResource(
-                                id = if (isDarkMode) R.drawable.ic_light_mode else R.drawable.ic_dark_mode
+                                id = if (isDarkMode) R.drawable.ic_light_mode
+                                else R.drawable.ic_dark_mode
                             ),
                             contentDescription = stringResource(R.string.change_theme)
                         )
+                    }
+                    if (isLoggedIn) {
+                        IconButton(onClick = { onSignOut() }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_logout),
+                                contentDescription = stringResource(R.string.btn_logout)
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { onSignIn() }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_login),
+                                contentDescription = stringResource(R.string.btn_login)
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -140,6 +161,14 @@ fun MainScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (selectedTab == 0) {
+                    if (!isLoggedIn) {
+                        Toast.makeText(
+                            context,
+                            msgLoginRequired,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@FloatingActionButton
+                    }
                     val options = CropImageContractOptions(
                         null,
                         CropImageOptions(
@@ -156,7 +185,8 @@ fun MainScreen(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(
-                        if (selectedTab == 0) R.string.add_manhwa else R.string.add_character
+                        if (selectedTab == 0) R.string.add_manhwa
+                        else R.string.add_character
                     )
                 )
             }
@@ -169,8 +199,11 @@ fun MainScreen(
         ) {
             PrimaryTabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { index, title ->
-                    Tab(selected = selectedTab == index, onClick = { selectedTab = index },
-                        text = { Text(title) })
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(title) }
+                    )
                 }
             }
 
@@ -179,10 +212,16 @@ fun MainScreen(
             }
 
             when (selectedTab) {
-                0 -> ManhwaTabContent(data = data, isList = isList,
-                    onItemClick = { navController.navigate(Screen.FormUbah.withId(it)) })
-                1 -> CharacterTabContent(characters = characters, manhwaList = data,
-                    onDeleteCharacter = { viewModel.deleteCharacter(it) })
+                0 -> ManhwaTabContent(
+                    data = data,
+                    isList = isList,
+                    onItemClick = { navController.navigate(Screen.FormUbah.withId(it)) }
+                )
+                1 -> CharacterTabContent(
+                    characters = characters,
+                    manhwaList = data,
+                    onDeleteCharacter = { viewModel.deleteCharacter(it) }
+                )
             }
         }
     }
@@ -192,7 +231,6 @@ fun MainScreen(
             bitmap = bitmap,
             onDismissRequest = { showManhwaDialog = false },
             onConfirmation = { judul, author, rating ->
-                // Task 3.3: kirim ke server + simpan lokal
                 viewModel.saveManhwa(
                     userId = userId,
                     judul = judul,
@@ -234,20 +272,31 @@ fun MainScreen(
 
 @Composable
 private fun ManhwaTabContent(
-    data: List<ManhwaEntity>, isList: Boolean, onItemClick: (Int) -> Unit
+    data: List<ManhwaEntity>,
+    isList: Boolean,
+    onItemClick: (Int) -> Unit
 ) {
     if (data.isEmpty()) {
         EmptyState(message = stringResource(R.string.empty_manhwa))
     } else {
         if (isList) {
-            LazyColumn(modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)) {
-                items(data) { ManhwaItem(manhwa = it, isGrid = false, onClick = { onItemClick(it.id) }) }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(data) {
+                    ManhwaItem(manhwa = it, isGrid = false, onClick = { onItemClick(it.id) })
+                }
             }
         } else {
-            LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)) {
-                items(data) { ManhwaItem(manhwa = it, isGrid = true, onClick = { onItemClick(it.id) }) }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(data) {
+                    ManhwaItem(manhwa = it, isGrid = true, onClick = { onItemClick(it.id) })
+                }
             }
         }
     }
@@ -262,12 +311,18 @@ private fun CharacterTabContent(
     if (characters.isEmpty()) {
         EmptyState(message = stringResource(R.string.empty_character))
     } else {
-        LazyColumn(modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp)) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
             items(characters) { character ->
-                val title = manhwaList.find { it.id == character.manhwaId }?.title ?: "Unknown"
-                CharacterItem(character = character, manhwaTitle = title,
-                    onDelete = { onDeleteCharacter(character) })
+                val title =
+                    manhwaList.find { it.id == character.manhwaId }?.title ?: "Unknown"
+                CharacterItem(
+                    character = character,
+                    manhwaTitle = title,
+                    onDelete = { onDeleteCharacter(character) }
+                )
             }
         }
     }
@@ -275,10 +330,16 @@ private fun CharacterTabContent(
 
 @Composable
 private fun EmptyState(message: String) {
-    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(painter = painterResource(id = R.drawable.ic_empty_state),
-            contentDescription = null, modifier = Modifier.size(120.dp))
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_empty_state),
+            contentDescription = null,
+            modifier = Modifier.size(120.dp)
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = message, style = MaterialTheme.typography.bodyLarge)
     }

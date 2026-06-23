@@ -31,18 +31,21 @@ fun AddCharacterDialog(
                     stringResource(R.string.label_pick_manhwa),
                     style = MaterialTheme.typography.labelMedium
                 )
+
                 ExposedDropdownMenuBox(
                     expanded = dropdownExpanded,
                     onExpandedChange = { dropdownExpanded = !dropdownExpanded }
                 ) {
                     OutlinedTextField(
-                        value = selectedManhwa?.title ?: stringResource(R.string.label_pick_manhwa),
+                        value = selectedManhwa?.title
+                            ?: stringResource(R.string.label_pick_manhwa),
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
                         },
                         modifier = Modifier
+                            .menuAnchor()
                             .fillMaxWidth()
                     )
                     ExposedDropdownMenu(

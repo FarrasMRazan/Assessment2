@@ -20,7 +20,10 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SetupNavGraph(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    userId: String = "",
+    onSignIn: () -> Unit = {},
+    onSignOut: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -45,11 +48,13 @@ fun SetupNavGraph(
             MainScreen(
                 navController = navController,
                 viewModel = viewModel,
-                userId = "",
                 isList = isList,
                 isDarkMode = isDarkMode,
                 onLayoutChange = { scope.launch { dataStore.saveLayout(it) } },
-                onThemeChange = { scope.launch { dataStore.saveDarkMode(it) } }
+                onThemeChange = { scope.launch { dataStore.saveDarkMode(it) } },
+                userId = userId,
+                onSignIn = onSignIn,
+                onSignOut = onSignOut
             )
         }
 

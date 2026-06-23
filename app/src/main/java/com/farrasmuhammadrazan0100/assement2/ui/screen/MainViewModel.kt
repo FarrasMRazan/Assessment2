@@ -190,7 +190,7 @@ class MainViewModel(
                 author = "Shiro API · $categoryName",
                 rating = 0f,
                 imageUri = "",
-                userId = ""  // publik, tampil ke semua user
+                userId = ""
             )
         )
         _errorMessage.value = "✓ \"$title\" ($categoryName) ditambahkan!"

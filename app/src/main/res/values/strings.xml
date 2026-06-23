@@ -6,6 +6,8 @@
     <string name="change_layout">Ganti Tampilan</string>
     <string name="change_theme">Ganti Tema</string>
     <string name="btn_recommend">Rekomendasi</string>
+    <string name="btn_login">Login</string>
+    <string name="btn_logout">Logout</string>
     <string name="add_manhwa">Tambah Manhwa</string>
     <string name="add_character">Tambah Karakter</string>
     <string name="empty_manhwa">Belum ada manhwa.\nTambahkan dengan kamera atau cari rekomendasi!</string>
@@ -25,6 +27,7 @@
     <string name="toast_empty_field">Judul, Author, dan Rating wajib diisi!</string>
     <string name="toast_saved">Berhasil disimpan!</string>
     <string name="toast_deleted">Manhwa berhasil dihapus!</string>
+    <string name="toast_login_required">Login dulu untuk menambah manhwa!</string>
     <string name="dialog_delete_title">Hapus Manhwa</string>
     <string name="dialog_delete_message">Yakin ingin menghapus manhwa ini?\nSemua karakter terkait juga akan terhapus.</string>
     <string name="btn_delete">Hapus</string>

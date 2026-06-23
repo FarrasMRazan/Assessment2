@@ -30,7 +30,7 @@ object ManhwaApiConfig {
 
     val collectionService: ManhwaApiService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://shiro.kuuhaku.space/") // ← ganti URL server kamu
+            .baseUrl("https://shiro.kuuhaku.space/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
