@@ -5,6 +5,7 @@ import android.graphics.ImageDecoder
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -36,6 +37,7 @@ import com.farrasmuhammadrazan0100.assement2.ui.screen.component.AddCharacterDia
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.CharacterItem
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ManhwaDialog
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ManhwaItem
+import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ShiroRecommendDialog
 
 private fun getCroppedImage(
     resolver: android.content.ContentResolver,
@@ -69,25 +71,35 @@ fun MainScreen(
     val context = LocalContext.current
     val data by viewModel.data.collectAsState()
     val characters by viewModel.characters.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddCharacterDialog by remember { mutableStateOf(false) }
     var showManhwaDialog by remember { mutableStateOf(false) }
+    var showRecommendDialog by remember { mutableStateOf(false) }
 
     val tabs = listOf(
         stringResource(R.string.tab_manhwa),
         stringResource(R.string.tab_character)
     )
 
+
     LaunchedEffect(userId) {
         viewModel.setUserId(userId)
+    }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.clearMessage()
+        }
     }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
 
     val launcher = rememberLauncherForActivityResult(CropImageContract()) {
         bitmap = getCroppedImage(context.contentResolver, it)
-        // Tampilkan dialog hanya jika bitmap berhasil didapat
         if (bitmap != null) showManhwaDialog = true
     }
 
@@ -96,6 +108,12 @@ fun MainScreen(
             TopAppBar(
                 title = { Text(text = stringResource(R.string.app_title)) },
                 actions = {
+                    IconButton(onClick = { showRecommendDialog = true }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.recommend),
+                            contentDescription = stringResource(R.string.btn_recommend)
+                        )
+                    }
                     IconButton(onClick = { onLayoutChange(!isList) }) {
                         Icon(
                             painter = painterResource(
@@ -125,7 +143,7 @@ fun MainScreen(
                     val options = CropImageContractOptions(
                         null,
                         CropImageOptions(
-                            imageSourceIncludeGallery = false,
+                            imageSourceIncludeGallery = true,
                             imageSourceIncludeCamera = true,
                             fixAspectRatio = true
                         )
@@ -151,13 +169,15 @@ fun MainScreen(
         ) {
             PrimaryTabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(title) }
-                    )
+                    Tab(selected = selectedTab == index, onClick = { selectedTab = index },
+                        text = { Text(title) })
                 }
             }
+
+            if (isLoading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+
             when (selectedTab) {
                 0 -> ManhwaTabContent(data = data, isList = isList,
                     onItemClick = { navController.navigate(Screen.FormUbah.withId(it)) })
@@ -167,15 +187,35 @@ fun MainScreen(
         }
     }
 
-
     if (showManhwaDialog) {
         ManhwaDialog(
             bitmap = bitmap,
             onDismissRequest = { showManhwaDialog = false },
             onConfirmation = { judul, author, rating ->
-                Log.d("TAMBAH", "$judul $author ditambahkan.")
+                // Task 3.3: kirim ke server + simpan lokal
+                viewModel.saveManhwa(
+                    userId = userId,
+                    judul = judul,
+                    author = author,
+                    rating = rating,
+                    bitmap = bitmap!!
+                )
                 showManhwaDialog = false
+            }
+        )
+    }
 
+    if (showRecommendDialog) {
+        ShiroRecommendDialog(
+            isLoading = isLoading,
+            onDismiss = { if (!isLoading) showRecommendDialog = false },
+            onFetchRandom = {
+                showRecommendDialog = false
+                viewModel.fetchRandomRecommendation(userId)
+            },
+            onFetchByCategory = { category ->
+                showRecommendDialog = false
+                viewModel.fetchRecommendationByCategory(category, userId)
             }
         )
     }
@@ -200,7 +240,8 @@ private fun ManhwaTabContent(
         EmptyState(message = stringResource(R.string.empty_manhwa))
     } else {
         if (isList) {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 80.dp)) {
+            LazyColumn(modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)) {
                 items(data) { ManhwaItem(manhwa = it, isGrid = false, onClick = { onItemClick(it.id) }) }
             }
         } else {
@@ -221,7 +262,8 @@ private fun CharacterTabContent(
     if (characters.isEmpty()) {
         EmptyState(message = stringResource(R.string.empty_character))
     } else {
-        LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 80.dp)) {
+        LazyColumn(modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp)) {
             items(characters) { character ->
                 val title = manhwaList.find { it.id == character.manhwaId }?.title ?: "Unknown"
                 CharacterItem(character = character, manhwaTitle = title,

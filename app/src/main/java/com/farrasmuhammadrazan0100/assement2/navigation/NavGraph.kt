@@ -45,6 +45,7 @@ fun SetupNavGraph(
             MainScreen(
                 navController = navController,
                 viewModel = viewModel,
+                userId = "",
                 isList = isList,
                 isDarkMode = isDarkMode,
                 onLayoutChange = { scope.launch { dataStore.saveLayout(it) } },

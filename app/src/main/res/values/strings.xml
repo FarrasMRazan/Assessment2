@@ -1,47 +1,44 @@
 <resources>
-    <string name="app_name">Assement2</string>
-
-    <string name="app_title">ManhwaList</string>
-    <string name="change_layout">Ganti Layout</string>
-    <string name="change_theme">Ganti Tema</string>
-
+    <string name="app_name">Manhwa Collection</string>
+    <string name="app_title">Manhwa Collection</string>
     <string name="tab_manhwa">Manhwa</string>
-    <string name="tab_character">Character</string>
-
-    <string name="empty_manhwa">Belum ada koleksi Manhwa.</string>
-    <string name="empty_character">Belum ada karakter yang ditambahkan.</string>
-
+    <string name="tab_character">Karakter</string>
+    <string name="change_layout">Ganti Tampilan</string>
+    <string name="change_theme">Ganti Tema</string>
+    <string name="btn_recommend">Rekomendasi</string>
     <string name="add_manhwa">Tambah Manhwa</string>
     <string name="add_character">Tambah Karakter</string>
-    <string name="save_data">Simpan Data</string>
-    <string name="update_data">Perbarui Data</string>
-    <string name="pick_image">Pilih Gambar dari Galeri</string>
-    <string name="change_image">Ganti Gambar</string>
-    <string name="btn_delete">Hapus</string>
-    <string name="btn_cancel">Batal</string>
-    <string name="btn_add">Tambah</string>
-    <string name="btn_back">Kembali</string>
-
-    <string name="label_title">Judul Manhwa</string>
-    <string name="label_author">Penulis</string>
-    <string name="label_rating">Rating (Contoh: 4.5)</string>
+    <string name="empty_manhwa">Belum ada manhwa.\nTambahkan dengan kamera atau cari rekomendasi!</string>
+    <string name="empty_character">Belum ada karakter.</string>
     <string name="topbar_add_manhwa">Tambah Manhwa</string>
-    <string name="topbar_edit_manhwa">Ubah Manhwa</string>
+    <string name="topbar_edit_manhwa">Edit Manhwa</string>
+    <string name="btn_back">Kembali</string>
     <string name="menu_options">Opsi</string>
     <string name="menu_delete_manhwa">Hapus Manhwa</string>
-    <string name="toast_empty_field">Data tidak boleh kosong!</string>
-    <string name="toast_saved">Data berhasil disimpan</string>
-    <string name="toast_deleted">Data telah dihapus</string>
-
-    <string name="dialog_delete_title">Hapus Manhwa?</string>
-    <string name="dialog_delete_message">Data yang sudah dihapus tidak dapat dikembalikan. Apakah Anda yakin?</string>
-
+    <string name="label_title">Judul</string>
+    <string name="label_author">Author</string>
+    <string name="label_rating">Rating (0.0–10.0)</string>
+    <string name="pick_image">Pilih Gambar Cover</string>
+    <string name="change_image">Ganti Gambar Cover</string>
+    <string name="save_data">Simpan</string>
+    <string name="update_data">Update</string>
+    <string name="toast_empty_field">Judul, Author, dan Rating wajib diisi!</string>
+    <string name="toast_saved">Berhasil disimpan!</string>
+    <string name="toast_deleted">Manhwa berhasil dihapus!</string>
+    <string name="dialog_delete_title">Hapus Manhwa</string>
+    <string name="dialog_delete_message">Yakin ingin menghapus manhwa ini?\nSemua karakter terkait juga akan terhapus.</string>
+    <string name="btn_delete">Hapus</string>
+    <string name="btn_cancel">Batal</string>
     <string name="dialog_add_character_title">Tambah Karakter</string>
     <string name="label_pick_manhwa">Pilih Manhwa</string>
     <string name="label_char_name">Nama Karakter</string>
-    <string name="label_char_role">Role (Contoh: Protagonist)</string>
-
+    <string name="label_char_role">Role Karakter</string>
+    <string name="btn_add">Tambah</string>
     <string name="char_role_prefix">Role: </string>
     <string name="char_manhwa_prefix">Manhwa: </string>
     <string name="delete_character">Hapus Karakter</string>
+    <string name="dialog_recommend_title">Rekomendasi Manhwa</string>
+    <string name="dialog_recommend_desc">Pilih kategori atau tekan Random untuk dapat rekomendasi dari Shiro API!</string>
+    <string name="label_pick_category">Pilih Kategori:</string>
+    <string name="btn_random">🎲 Random</string>
 </resources>
