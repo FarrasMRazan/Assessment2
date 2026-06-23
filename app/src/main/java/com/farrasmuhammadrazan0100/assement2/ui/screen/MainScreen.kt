@@ -34,10 +34,9 @@ import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
 import com.farrasmuhammadrazan0100.assement2.navigation.Screen
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.AddCharacterDialog
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.CharacterItem
+import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ManhwaDialog
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ManhwaItem
 
-// getCroppedImage: memproses hasil crop kamera menjadi Bitmap
-// Menangani dua API Android: < P pakai getBitmap (deprecated), >= Q pakai decodeBitmap
 private fun getCroppedImage(
     resolver: android.content.ContentResolver,
     result: CropImageView.CropResult
@@ -47,7 +46,6 @@ private fun getCroppedImage(
         return null
     }
     val uri = result.uriContent ?: return null
-
     return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
         @Suppress("DEPRECATION")
         MediaStore.Images.Media.getBitmap(resolver, uri)
@@ -74,24 +72,24 @@ fun MainScreen(
 
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddCharacterDialog by remember { mutableStateOf(false) }
+    // State baru: tampilkan ManhwaDialog setelah bitmap dari kamera tersedia
+    var showManhwaDialog by remember { mutableStateOf(false) }
 
     val tabs = listOf(
         stringResource(R.string.tab_manhwa),
         stringResource(R.string.tab_character)
     )
 
-    // userId dikirim ke ViewModel agar data yang tampil sesuai akun
     //LaunchedEffect(userId) {
       //  viewModel.setUserId(userId)
-   // }
+    //}
 
-    // Bitmap dari kamera, null sebelum pengguna mengambil gambar
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
 
-    // Launcher kamera dengan crop square
     val launcher = rememberLauncherForActivityResult(CropImageContract()) {
         bitmap = getCroppedImage(context.contentResolver, it)
-        // TODO Task 3.2: tampilkan dialog setelah bitmap tersedia
+        // Tampilkan dialog hanya jika bitmap berhasil didapat
+        if (bitmap != null) showManhwaDialog = true
     }
 
     Scaffold(
@@ -125,7 +123,6 @@ fun MainScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (selectedTab == 0) {
-                    // Buka kamera, paksa crop square (fixAspectRatio = true)
                     val options = CropImageContractOptions(
                         null,
                         CropImageOptions(
@@ -162,22 +159,27 @@ fun MainScreen(
                     )
                 }
             }
-
             when (selectedTab) {
-                0 -> ManhwaTabContent(
-                    data = data,
-                    isList = isList,
-                    onItemClick = { manhwaId ->
-                        navController.navigate(Screen.FormUbah.withId(manhwaId))
-                    }
-                )
-                1 -> CharacterTabContent(
-                    characters = characters,
-                    manhwaList = data,
-                    onDeleteCharacter = { viewModel.deleteCharacter(it) }
-                )
+                0 -> ManhwaTabContent(data = data, isList = isList,
+                    onItemClick = { navController.navigate(Screen.FormUbah.withId(it)) })
+                1 -> CharacterTabContent(characters = characters, manhwaList = data,
+                    onDeleteCharacter = { viewModel.deleteCharacter(it) })
             }
         }
+    }
+
+    // Dialog tambah manhwa (setelah foto dari kamera)
+    // Saat simpan diklik → Log.d dulu (Task 3.2), nanti diganti kirim ke server (Task 3.3)
+    if (showManhwaDialog) {
+        ManhwaDialog(
+            bitmap = bitmap,
+            onDismissRequest = { showManhwaDialog = false },
+            onConfirmation = { judul, author, rating ->
+                Log.d("TAMBAH", "$judul $author ditambahkan.")
+                showManhwaDialog = false
+                // TODO Task 3.3: ganti Log.d di atas dengan viewModel.saveManhwa(...)
+            }
+        )
     }
 
     if (showAddCharacterDialog) {
@@ -194,32 +196,19 @@ fun MainScreen(
 
 @Composable
 private fun ManhwaTabContent(
-    data: List<ManhwaEntity>,
-    isList: Boolean,
-    onItemClick: (Int) -> Unit
+    data: List<ManhwaEntity>, isList: Boolean, onItemClick: (Int) -> Unit
 ) {
     if (data.isEmpty()) {
         EmptyState(message = stringResource(R.string.empty_manhwa))
     } else {
         if (isList) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(data) { manhwa ->
-                    ManhwaItem(manhwa = manhwa, isGrid = false, onClick = { onItemClick(manhwa.id) })
-                }
+            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 80.dp)) {
+                items(data) { ManhwaItem(manhwa = it, isGrid = false, onClick = { onItemClick(it.id) }) }
             }
         } else {
-            // bottom padding 80.dp agar item terakhir tidak tertutup FAB
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(data) { manhwa ->
-                    ManhwaItem(manhwa = manhwa, isGrid = true, onClick = { onItemClick(manhwa.id) })
-                }
+            LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)) {
+                items(data) { ManhwaItem(manhwa = it, isGrid = true, onClick = { onItemClick(it.id) }) }
             }
         }
     }
@@ -234,17 +223,11 @@ private fun CharacterTabContent(
     if (characters.isEmpty()) {
         EmptyState(message = stringResource(R.string.empty_character))
     } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp)
-        ) {
+        LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 80.dp)) {
             items(characters) { character ->
-                val manhwaTitle = manhwaList.find { it.id == character.manhwaId }?.title ?: "Unknown"
-                CharacterItem(
-                    character = character,
-                    manhwaTitle = manhwaTitle,
-                    onDelete = { onDeleteCharacter(character) }
-                )
+                val title = manhwaList.find { it.id == character.manhwaId }?.title ?: "Unknown"
+                CharacterItem(character = character, manhwaTitle = title,
+                    onDelete = { onDeleteCharacter(character) })
             }
         }
     }
@@ -252,16 +235,10 @@ private fun CharacterTabContent(
 
 @Composable
 private fun EmptyState(message: String) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_empty_state),
-            contentDescription = null,
-            modifier = Modifier.size(120.dp)
-        )
+    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Image(painter = painterResource(id = R.drawable.ic_empty_state),
+            contentDescription = null, modifier = Modifier.size(120.dp))
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = message, style = MaterialTheme.typography.bodyLarge)
     }
