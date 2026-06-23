@@ -25,6 +25,7 @@ class MainActivity : ComponentActivity() {
         val dataStore = SettingsDataStore(this)
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(BuildConfig.API_KEY)
             .requestEmail()
             .build()
         val googleSignInClient = GoogleSignIn.getClient(this, gso)
@@ -33,11 +34,15 @@ class MainActivity : ComponentActivity() {
             val isDarkMode by dataStore.darkModeFlow.collectAsState(initial = false)
 
             var userId by remember { mutableStateOf("") }
+            var userName by remember { mutableStateOf("") }
+            var userPhoto by remember { mutableStateOf<String?>(null) }
 
             LaunchedEffect(Unit) {
                 val account = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
                 if (account != null) {
                     userId = account.email ?: ""
+                    userName = account.displayName ?: ""
+                    userPhoto = account.photoUrl?.toString()
                 }
             }
 
@@ -48,6 +53,8 @@ class MainActivity : ComponentActivity() {
                 try {
                     val account = task.getResult(ApiException::class.java)
                     userId = account.email ?: ""
+                    userName = account.displayName ?: ""
+                    userPhoto = account.photoUrl?.toString()
                 } catch (e: ApiException) {
                     Toast.makeText(
                         this@MainActivity,
@@ -64,12 +71,14 @@ class MainActivity : ComponentActivity() {
                 ) {
                     SetupNavGraph(
                         userId = userId,
-                        onSignIn = {
-                            launcher.launch(googleSignInClient.signInIntent)
-                        },
+                        userName = userName,
+                        userPhoto = userPhoto,
+                        onSignIn = { launcher.launch(googleSignInClient.signInIntent) },
                         onSignOut = {
                             googleSignInClient.signOut().addOnCompleteListener {
                                 userId = ""
+                                userName = ""
+                                userPhoto = null
                             }
                         }
                     )

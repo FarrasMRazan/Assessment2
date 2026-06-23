@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 fun SetupNavGraph(
     navController: NavHostController = rememberNavController(),
     userId: String = "",
+    userName: String = "",
+    userPhoto: String? = null,
     onSignIn: () -> Unit = {},
     onSignOut: () -> Unit = {}
 ) {
@@ -53,6 +55,8 @@ fun SetupNavGraph(
                 onLayoutChange = { scope.launch { dataStore.saveLayout(it) } },
                 onThemeChange = { scope.launch { dataStore.saveDarkMode(it) } },
                 userId = userId,
+                userName = userName,
+                userPhoto = userPhoto,
                 onSignIn = onSignIn,
                 onSignOut = onSignOut
             )

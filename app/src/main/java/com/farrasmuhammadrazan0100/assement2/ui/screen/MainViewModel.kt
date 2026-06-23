@@ -1,6 +1,8 @@
 package com.farrasmuhammadrazan0100.assement2.ui.screen
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -19,6 +21,8 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 class MainViewModel(
     val dao: ManhwaDao,
@@ -98,6 +102,7 @@ class MainViewModel(
     }
 
     fun saveManhwa(
+        context: Context,
         userId: String,
         judul: String,
         author: String,
@@ -107,6 +112,8 @@ class MainViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             try {
+                val imageUri = saveBitmapToFile(context, bitmap)
+
                 val imagePart = bitmap.toMultipartBody()
                 val judulBody = judul.toRequestBody("text/plain".toMediaTypeOrNull())
                 val authorBody = author.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -132,7 +139,7 @@ class MainViewModel(
                         title = judul,
                         author = author,
                         rating = rating,
-                        imageUri = "",
+                        imageUri = imageUri,
                         userId = userId
                     )
                 )
@@ -143,6 +150,17 @@ class MainViewModel(
                 _isLoading.value = false
             }
         }
+    }
+
+    private fun saveBitmapToFile(context: Context, bitmap: Bitmap): String {
+        val dir = File(context.filesDir, "manhwa_images")
+        if (!dir.exists()) dir.mkdirs()
+
+        val file = File(dir, "manhwa_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+        }
+        return file.absolutePath
     }
 
     fun fetchRandomRecommendation(userId: String) {

@@ -14,17 +14,22 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -37,6 +42,7 @@ import com.farrasmuhammadrazan0100.assement2.ui.screen.component.AddCharacterDia
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.CharacterItem
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ManhwaDialog
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ManhwaItem
+import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ProfileDialog
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ShiroRecommendDialog
 
 private fun getCroppedImage(
@@ -67,6 +73,8 @@ fun MainScreen(
     onLayoutChange: (Boolean) -> Unit,
     onThemeChange: (Boolean) -> Unit,
     userId: String,
+    userName: String = "",
+    userPhoto: String? = null,
     onSignIn: () -> Unit = {},
     onSignOut: () -> Unit = {}
 ) {
@@ -83,6 +91,7 @@ fun MainScreen(
     var showAddCharacterDialog by remember { mutableStateOf(false) }
     var showManhwaDialog by remember { mutableStateOf(false) }
     var showRecommendDialog by remember { mutableStateOf(false) }
+    var showProfileDialog by remember { mutableStateOf(false) }
 
     val tabs = listOf(
         stringResource(R.string.tab_manhwa),
@@ -136,18 +145,23 @@ fun MainScreen(
                             contentDescription = stringResource(R.string.change_theme)
                         )
                     }
-                    if (isLoggedIn) {
-                        IconButton(onClick = { onSignOut() }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_logout),
-                                contentDescription = stringResource(R.string.btn_logout)
+                    IconButton(onClick = {
+                        if (isLoggedIn) showProfileDialog = true
+                        else onSignIn()
+                    }) {
+                        if (isLoggedIn && userPhoto != null) {
+                            AsyncImage(
+                                model = userPhoto,
+                                contentDescription = "Profil",
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
                             )
-                        }
-                    } else {
-                        IconButton(onClick = { onSignIn() }) {
+                        } else {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_login),
-                                contentDescription = stringResource(R.string.btn_login)
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = if (isLoggedIn) "Profil" else "Login"
                             )
                         }
                     }
@@ -162,11 +176,7 @@ fun MainScreen(
             FloatingActionButton(onClick = {
                 if (selectedTab == 0) {
                     if (!isLoggedIn) {
-                        Toast.makeText(
-                            context,
-                            msgLoginRequired,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(context, msgLoginRequired, Toast.LENGTH_SHORT).show()
                         return@FloatingActionButton
                     }
                     val options = CropImageContractOptions(
@@ -232,6 +242,7 @@ fun MainScreen(
             onDismissRequest = { showManhwaDialog = false },
             onConfirmation = { judul, author, rating ->
                 viewModel.saveManhwa(
+                    context = context,
                     userId = userId,
                     judul = judul,
                     author = author,
@@ -239,6 +250,19 @@ fun MainScreen(
                     bitmap = bitmap!!
                 )
                 showManhwaDialog = false
+            }
+        )
+    }
+
+    if (showProfileDialog) {
+        ProfileDialog(
+            displayName = userName,
+            email = userId,
+            photoUrl = userPhoto,
+            onDismiss = { showProfileDialog = false },
+            onSignOut = {
+                onSignOut()
+                showProfileDialog = false
             }
         )
     }
