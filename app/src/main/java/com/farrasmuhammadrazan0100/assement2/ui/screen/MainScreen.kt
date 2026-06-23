@@ -1,14 +1,13 @@
 package com.farrasmuhammadrazan0100.assement2.ui.screen
 
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.os.Build
+import android.provider.MediaStore
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -16,35 +15,47 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import com.farrasmuhammadrazan0100.assement2.R
+import com.farrasmuhammadrazan0100.assement2.model.CharacterEntity
+import com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity
 import com.farrasmuhammadrazan0100.assement2.navigation.Screen
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.AddCharacterDialog
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.CharacterItem
 import com.farrasmuhammadrazan0100.assement2.ui.screen.component.ManhwaItem
+
+// getCroppedImage: memproses hasil crop kamera menjadi Bitmap
+// Menangani dua API Android: < P pakai getBitmap (deprecated), >= Q pakai decodeBitmap
+private fun getCroppedImage(
+    resolver: android.content.ContentResolver,
+    result: CropImageView.CropResult
+): Bitmap? {
+    if (!result.isSuccessful) {
+        Log.e("MANHWA", "getCroppedImage Error: ${result.error}")
+        return null
+    }
+    val uri = result.uriContent ?: return null
+
+    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        @Suppress("DEPRECATION")
+        MediaStore.Images.Media.getBitmap(resolver, uri)
+    } else {
+        val source = ImageDecoder.createSource(resolver, uri)
+        ImageDecoder.decodeBitmap(source)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,8 +65,10 @@ fun MainScreen(
     isList: Boolean,
     isDarkMode: Boolean,
     onLayoutChange: (Boolean) -> Unit,
-    onThemeChange: (Boolean) -> Unit
+    onThemeChange: (Boolean) -> Unit,
+    userId: String
 ) {
+    val context = LocalContext.current
     val data by viewModel.data.collectAsState()
     val characters by viewModel.characters.collectAsState()
 
@@ -66,6 +79,20 @@ fun MainScreen(
         stringResource(R.string.tab_manhwa),
         stringResource(R.string.tab_character)
     )
+
+    // userId dikirim ke ViewModel agar data yang tampil sesuai akun
+    //LaunchedEffect(userId) {
+      //  viewModel.setUserId(userId)
+   // }
+
+    // Bitmap dari kamera, null sebelum pengguna mengambil gambar
+    var bitmap: Bitmap? by remember { mutableStateOf(null) }
+
+    // Launcher kamera dengan crop square
+    val launcher = rememberLauncherForActivityResult(CropImageContract()) {
+        bitmap = getCroppedImage(context.contentResolver, it)
+        // TODO Task 3.2: tampilkan dialog setelah bitmap tersedia
+    }
 
     Scaffold(
         topBar = {
@@ -98,7 +125,16 @@ fun MainScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (selectedTab == 0) {
-                    navController.navigate(Screen.FormBaru.route)
+                    // Buka kamera, paksa crop square (fixAspectRatio = true)
+                    val options = CropImageContractOptions(
+                        null,
+                        CropImageOptions(
+                            imageSourceIncludeGallery = false,
+                            imageSourceIncludeCamera = true,
+                            fixAspectRatio = true
+                        )
+                    )
+                    launcher.launch(options)
                 } else {
                     showAddCharacterDialog = true
                 }
@@ -117,7 +153,6 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Tab Row
             PrimaryTabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
@@ -128,7 +163,6 @@ fun MainScreen(
                 }
             }
 
-            // Tab Content
             when (selectedTab) {
                 0 -> ManhwaTabContent(
                     data = data,
@@ -140,15 +174,12 @@ fun MainScreen(
                 1 -> CharacterTabContent(
                     characters = characters,
                     manhwaList = data,
-                    onDeleteCharacter = { character ->
-                        viewModel.deleteCharacter(character)
-                    }
+                    onDeleteCharacter = { viewModel.deleteCharacter(it) }
                 )
             }
         }
     }
 
-    // Dialog Tambah Character
     if (showAddCharacterDialog) {
         AddCharacterDialog(
             manhwaList = data,
@@ -163,7 +194,7 @@ fun MainScreen(
 
 @Composable
 private fun ManhwaTabContent(
-    data: List<com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity>,
+    data: List<ManhwaEntity>,
     isList: Boolean,
     onItemClick: (Int) -> Unit
 ) {
@@ -176,25 +207,18 @@ private fun ManhwaTabContent(
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(data) { manhwa ->
-                    ManhwaItem(
-                        manhwa = manhwa,
-                        isGrid = false,
-                        onClick = { onItemClick(manhwa.id) }
-                    )
+                    ManhwaItem(manhwa = manhwa, isGrid = false, onClick = { onItemClick(manhwa.id) })
                 }
             }
         } else {
+            // bottom padding 80.dp agar item terakhir tidak tertutup FAB
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(data) { manhwa ->
-                    ManhwaItem(
-                        manhwa = manhwa,
-                        isGrid = true,
-                        onClick = { onItemClick(manhwa.id) }
-                    )
+                    ManhwaItem(manhwa = manhwa, isGrid = true, onClick = { onItemClick(manhwa.id) })
                 }
             }
         }
@@ -203,9 +227,9 @@ private fun ManhwaTabContent(
 
 @Composable
 private fun CharacterTabContent(
-    characters: List<com.farrasmuhammadrazan0100.assement2.model.CharacterEntity>,
-    manhwaList: List<com.farrasmuhammadrazan0100.assement2.model.ManhwaEntity>,
-    onDeleteCharacter: (com.farrasmuhammadrazan0100.assement2.model.CharacterEntity) -> Unit
+    characters: List<CharacterEntity>,
+    manhwaList: List<ManhwaEntity>,
+    onDeleteCharacter: (CharacterEntity) -> Unit
 ) {
     if (characters.isEmpty()) {
         EmptyState(message = stringResource(R.string.empty_character))
